@@ -1,26 +1,44 @@
 #!/usr/local/bin/lua
 
+--
+-- Copyright (c) Marcel Moura. All rights reserved.
+--
+
 if #arg ~= 2 then
   print('Usage:', arg[0]..' <input csv file> <output csv file>')
   os.exit()
 end
 
-print('Converting '..arg[1]..' to '..arg[2]..'...')
+function convert_line(inline)
+  discard, orig_date, entry, orig_amount = string.match(inline, "((%d%d/%d%d/%d%d%d%d);([^;]+);([-,%w]+))")
 
-input = io.open(arg[1])
-io.input(input)
+  date = string.gsub(orig_date, '((%d%d)/(%d%d)/(%d%d%d%d))', '%3/%2/%4');
+  amount = string.gsub(orig_amount,',','.')
 
-output = io.open(arg[2], 'w+')
-io.output(output)
-
-line = io.read()
-while line ~= nil do
-  io.write(line)
-  io.write('\n')
-  line = io.read()
+  return date..';'..entry..';'..amount  
 end
 
-io.close(input)
-io.close(output)
+function convert_file(infile, outfile)
+  print('Converting '..infile..' to '..outfile..'...')
 
-print('DONE')
+  input = io.open(infile)
+  io.input(input)
+
+  output = io.open(outfile, 'w+')
+  io.output(output)
+
+  line = io.read()
+  while line ~= nil do
+    io.write(convert_line(line))
+    io.write('\n')
+    line = io.read()
+  end
+
+  io.close(input)
+  io.close(output)
+
+  print('DONE')
+
+end
+
+convert_file(arg[1], arg[2])
